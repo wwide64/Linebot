@@ -5,8 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
-use Line\LineBot;
-use Line\LineBot\HTTPClient\CurlHttpClient;
+use LINE\LINEBot;
+use LINE\LINEBot\Event\MessageEvent\TextMessage;
+use LINE\LINEBot\HTTPClient\CurlHttpClient;
 
 class LineBotController extends Controller
 {
@@ -35,6 +36,18 @@ class LineBotController extends Controller
         $events = $lineBot->parseEventRequest($request->getContent(), $signature);
 
         Log::debug($events);
+
+        // LINEのチャネルに返信する
+        foreach($events as $event) {
+            if(!($event instanceof TextMessage)) {
+                Log::debug('Non text message has come');
+                continue;
+            }
+
+            $replyToken = $event->getReplyToken();
+            $replyText = $event->getText();
+            $lineBot->replyText($replyToken, $replyText);
+        }
 
     }
 }
