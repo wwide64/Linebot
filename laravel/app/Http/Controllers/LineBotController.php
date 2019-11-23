@@ -3,12 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Services\Gurunavi;
+use App\Services\RestaurantBubbleBuilder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 use LINE\LINEBot;
 use LINE\LINEBot\Event\MessageEvent\TextMessage;
 use LINE\LINEBot\HTTPClient\CurlHttpClient;
+use LINE\LINEBot\MessageBuilder\FlexMessageBuilder;
+use LINE\LINEBot\MessageBuilder\Flex\ContainerBuilder\CaroselContainerBuilder;
 
 
 class LineBotController extends Controller
@@ -60,17 +63,31 @@ class LineBotController extends Controller
                 continue;
             }
 
-            $replyText = '';
-            foreach($gurunaviResponse['rest'] as $restaurant) {
-                $replyText .=
-                    $restaurant['name'] . "\n" .
-                    $restaurant['url'] . "\n" .
-                    "\n";
+            $bubbles = [];
+            // ぐるなびAPIのレスポンスから検索結果を一つづつ取り出す
+            foreach ($gurunaviResponse['rest'] as $restaurant) {
+                // RestaurantBubbleBuilderクラスの空のインスタンスを作成し、変数に代入
+                $bubble = RestaurantBubbleBuilder::builder();
+                // 検索結果の情報をRestaurantBubbleBuilderインスタンスの各種プロパティに代入
+                $bubble->setContents($restaurant);
+                // $bubbles配列の最後に値を追加
+                $bubbles[] = $bubble;
             }
+            // CarouselContainerBuilderクラスの空のインスタンスを作成し、変数に代入
+            $carousel = CarouselContainerBuilder::builder();
+            // CarouselContainerBuilderインスタンスのプロパティcontentsに$bubblesを代入
+            $carousel->setContents($bubbles);
 
-            $replyToken = $event->getReplyToken();
-            // $replyText = $event->getText();  ←オウム返し用コード
-            $lineBot->replyText($replyToken, $replyText);
+            // FlexMessageBuilderの空のインスタンスを作成。newを使うと引数が必須となるため、使わない
+            $flex = FlexMessageBuilder::builder();
+            // FlexMessageBuilderインスタンスのプロパティaltTextに文字列を代入
+            $flex = FlexMessageBuilder::builder();
+
+            $flex->setAltText('飲食店検索結果');
+            $flex->setContents($carousel);
+
+            // FlexMesageでメッセージの返信を行う
+            $lineBot->replyMessage($event->getReplyToken(), $flex);
         }
 
     }
