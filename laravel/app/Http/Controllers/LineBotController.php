@@ -11,7 +11,7 @@ use LINE\LINEBot;
 use LINE\LINEBot\Event\MessageEvent\TextMessage;
 use LINE\LINEBot\HTTPClient\CurlHttpClient;
 use LINE\LINEBot\MessageBuilder\FlexMessageBuilder;
-use LINE\LINEBot\MessageBuilder\Flex\ContainerBuilder\CaroselContainerBuilder;
+use LINE\LINEBot\MessageBuilder\Flex\ContainerBuilder\CarouselContainerBuilder;
 
 
 class LineBotController extends Controller
@@ -21,7 +21,6 @@ class LineBotController extends Controller
         return view('linebot.index');
     }
 
-    // public function parrot(Request $request)
     public function restaurants(Request $request)
     {
         // ログの出力
@@ -81,8 +80,6 @@ class LineBotController extends Controller
             // FlexMessageBuilderの空のインスタンスを作成。newを使うと引数が必須となるため、使わない
             $flex = FlexMessageBuilder::builder();
             // FlexMessageBuilderインスタンスのプロパティaltTextに文字列を代入
-            $flex = FlexMessageBuilder::builder();
-
             $flex->setAltText('飲食店検索結果');
             $flex->setContents($carousel);
 
