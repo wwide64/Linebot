@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\Gurunavi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 use LINE\LINEBot;
 use LINE\LINEBot\Event\MessageEvent\TextMessage;
 use LINE\LINEBot\HTTPClient\CurlHttpClient;
+
 
 class LineBotController extends Controller
 {
@@ -16,7 +18,8 @@ class LineBotController extends Controller
         return view('linebot.index');
     }
 
-    public function parrot(Request $request)
+    // public function parrot(Request $request)
+    public function restaurants(Request $request)
     {
         // ログの出力
         Log::debug($request->header());
@@ -44,8 +47,29 @@ class LineBotController extends Controller
                 continue;
             }
 
+            // Gurunaviクラスをインスタンス化して変数に代入
+            $gurunavi = new Gurunavi();
+            // ユーザーからのメッセージのテキストを取得してsearchRestaurantsメソッドに渡し、変数に代入
+            $gurunaviResponse = $gurunavi->searchRestaurants($event->getText());
+
+            // くるなびAPIのレスポンスがエラーだった場合の処理
+            if (array_key_exists('error', $gurunaviResponse)) {
+                $replyText = $gurunaviResponse['error'][0]['message'];
+                $replyToken = $event->getReplyToken();
+                $lineBot->replyText($replyToken, $replyText);
+                continue;
+            }
+
+            $replyText = '';
+            foreach($gurunaviResponse['rest'] as $restaurant) {
+                $replyText .=
+                    $restaurant['name'] . "\n" .
+                    $restaurant['url'] . "\n" .
+                    "\n";
+            }
+
             $replyToken = $event->getReplyToken();
-            $replyText = $event->getText();
+            // $replyText = $event->getText();  ←オウム返し用コード
             $lineBot->replyText($replyToken, $replyText);
         }
 
