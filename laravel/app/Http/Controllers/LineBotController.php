@@ -18,7 +18,8 @@ class LineBotController extends Controller
 {
     public function index()
     {
-        return view('linebot.index');
+        // return view('linebot.index');
+        return view('hello.index');
     }
 
     public function restaurants(Request $request)
